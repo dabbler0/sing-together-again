@@ -83,7 +83,7 @@ def song_list():
 
     return encoding.encode(result)
 
-@app.route('/create_room/<song_id:song_id>/<room_id:room_id>')
+@app.route('/create_room/<int:song_id>/<string:room_id>')
 def create_room(song_id, room_id):
     room = r.get('ROOM-USERS:%s' % room_id)
 
@@ -94,12 +94,12 @@ def create_room(song_id, room_id):
     # a list of users, a song, and a current tick.
 
     r.set('ROOM-USERS:%s' % room_id, [])
-    r.set('ROOM-SONG:%s' % room_id, int(song_id))
+    r.set('ROOM-SONG:%s' % room_id, song_id)
     r.set('ROOM-TICK:%s' % room_id, 0)
 
     return encoding.encode({'success': True})
 
-@app.route('/get-mixed/<room_id:room_id>')
+@app.route('/get-mixed/<string:room_id>')
 def get_mixed(room_id):
     song = int(r.get('ROOM-SONG:%s' % room_id))
 
@@ -110,7 +110,7 @@ def get_mixed(room_id):
 
     return encoding.encode(song_data)
 
-@app.route('/join-room/<room_id:room_id>')
+@app.route('/join-room/<string:room_id>')
 def join_room(room_id):
     user_id = generate_id()
 
@@ -119,7 +119,7 @@ def join_room(room_id):
     
     return encoding.encode({'user_id': user_id})
 
-@app.route('/submit-audio/<user_id:user_id>/<tick:tick>', methods=['POST'])
+@app.route('/submit-audio/<string:user_id>/<int:tick>', methods=['POST'])
 def submit_audio(user_id, tick):
     payload = encoding.decode(request.data)
 
