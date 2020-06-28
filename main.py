@@ -59,7 +59,7 @@ def list_songs():
     return encoding.encode([
         {
             'id': i,
-            'name': r.get('SONG-NAME:%d' % i)
+            'name': str(r.get('SONG-NAME:%d' % i))
         } for i in range(last_song_id)
     ])
 
