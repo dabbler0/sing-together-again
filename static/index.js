@@ -11,6 +11,8 @@ function handleSuccess(stream) {
 	mediaStream = stream;
 }
 
+const context = new AudioContext();
+
 // Record media
 
 function recordMedia(callback) {
@@ -37,6 +39,26 @@ function recordMedia(callback) {
 	return {
 		stop: (() => mediaRecorder.stop())
 	};
+}
+
+// Encoded data to buffer
+function makeAudioBuffer(response, callback) {
+	context.decodeAudioData(response, (buffer) => {
+		callback(buffer);
+	});
+}
+
+// Play buffer
+function playAudioBuffer(buffer, time) {
+	const bufferSource = context.createBufferSource();
+	bufferSource.buffer = buffer;
+	bufferSource.connect(context.destination);
+
+	if (time < context.currentTime) {
+		bufferSource.start(0, context.currentTime - time);
+	} else {
+		bufferSource.start(time);
+	}
 }
 
 /*
@@ -85,14 +107,20 @@ function showJoined() {
 	$('#joined').show();
 }
 
-// Stopgap for now
-function beginPlaying(user_id, room_id_string) {
+function scheduleNext(tick, nextTime, room_id_string) {
 	get('/get-mixed/' + room_id_string, {}, (response) => {
-		const blob = new Blob([response]);
-		const url = URL.createObjectURL(blob);
+		makeAudioBuffer(response, (buffer) => {
+			playAudioBuffer(buffer, nextTime);
 
-		$('#joined-playback').attr('src', url);
+			setTimeout((() => {
+				scheduleNext(tick + 1, nextTime + buffer.duration, room_id_string);
+			}), buffer.duration);
+		});
 	});
+}
+
+function beginPlaying(user_id, room_id_string) {
+	scheduleNext(0, 0, room_id_string);
 }
 
 function showRecording() {

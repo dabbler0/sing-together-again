@@ -20,6 +20,9 @@ import encoding
 import redis
 import random
 
+from pydub import AudioSegment
+from io import BytesIO
+
 r = redis.from_url(os.environ.get("REDIS_URL"))
 
 def generate_id():
@@ -95,6 +98,16 @@ def song_list():
         })
 
     return encoding.encode(result)
+
+def read_opus(data):
+    return AudioSegment.from_file(
+            BytesIO(data),
+            codec = 'opus'
+    )
+def as_mp3(audio_segment):
+    buf = BytesIO()
+    audio_segment.export(buf, format='mp3')
+    return buf.getvalue()
 
 @app.route('/create-room/<int:song_id>/<string:room_id>')
 def create_room(song_id, room_id):
