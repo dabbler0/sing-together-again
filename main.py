@@ -96,7 +96,7 @@ def song_list():
 
     return encoding.encode(result)
 
-@app.route('/create_room/<int:song_id>/<string:room_id>')
+@app.route('/create-room/<int:song_id>/<string:room_id>')
 def create_room(song_id, room_id):
     room = r.get('ROOM-USERS:%s' % room_id)
 
@@ -127,7 +127,7 @@ def get_mixed(room_id):
 def join_room(room_id):
     user_id = generate_id()
 
-    r.append('ROOM-USERS:%s' % room_id, user_id)
+    r.rpush('ROOM-USERS:%s' % room_id, user_id)
     r.set('USER-ROOM:%s' % user_id, room_id)
     
     return encoding.encode({'user_id': user_id})

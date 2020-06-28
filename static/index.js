@@ -61,8 +61,36 @@ function showSecondary() {
 			new_button.innerText = data[i].name;
 			new_button.className = 'song list-group-item list-group-item-action';
 
+			(() => {
+				const room_id_string = room_id.val();
+				$(new_button).click(() => {
+					get('/create-room/' + room_id_string + '/' + data[i].id,
+						{}, (response) => {
+						console.log('room created successfully')
+						get('/join-room/' + room_id_string, (response) => {
+							showJoined();
+							beginPlaying(response.user_id, room_id_string);
+						});
+					}
+				);
+			}());
+
 			$('#song-list').append(new_button);
 		}
+	});
+}
+
+function showJoined() {
+	view.forEach((x) => x.hide());
+	$('#joined').show();
+}
+
+// Stopgap for now
+function beginPlaying(user_id, room_id_string) {
+	get('/get-mixed/' + room_id_string, {}, (response) => {
+		const url = URL.createObjectURL(data);
+
+		$('#joined-playback').attr('src', url);
 	});
 }
 
