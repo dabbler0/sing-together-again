@@ -1,0 +1,92 @@
+<html>
+	<head>
+		<link rel="stylesheet" href="/static-x/bootstrap.css"/>
+<style>
+#initial, #recording, #has-recorded {
+	padding: 10px;
+	width: 500px;
+	position: absolute;
+	left: 50%;
+	margin-left: -250px;
+	top: 50%;
+	border-radius: 5px;
+	background: rgba(0, 0, 0, 0.1);
+	text-align: center;
+}
+#initial, #recording {
+	height: 150px;
+	margin-top: -75px;
+}
+#recording, #has-recorded {
+	display: none;
+}
+#has-recorded {
+	height: 250px;
+	margin-top: -125px;
+}
+.room-id-wrapper, .buttons-wrapper {
+	padding: 10px;
+}
+#secondary {
+	padding: 10px;
+	width: 500px;
+	height: 500px;
+	position: absolute;
+	left: 50%;
+	margin-left: -250px;
+	top: 50%;
+	margin-top: -250px;
+	border-radius: 2px;
+	background: rgba(0, 0, 0, 0.1);
+	text-align: center;
+	display: none;
+}
+#song-list {
+	height: 430px;
+	width: 460px;
+	margin: 10px;
+	border-radius: 5px;
+	overflow: auto;
+	background: #FFF;
+}
+</style>
+	</head>
+	<body>
+		<!-- First dialog box -->
+		<div id="initial">
+			<div class="room-id-wrapper"><input id="room-id" class="form-control" placeholder="Room ID"/></div>
+			<div class="buttons-wrapper"><button class="btn btn-primary" id="join-room">Join room</button> or <button class="btn btn-primary" id="create-room">Create new Room</button></div>
+		</div>
+
+		<!-- Second dialog box -->
+		<div id="secondary">
+			<div id="song-list">
+			</div>
+			<div id="new-song-wrapper">
+				<button class="btn btn-primary" id="new-song">Record new accompaniment</button>
+			</div>
+		</div>
+
+		<div id="recording">
+			<div class="buttons-wrapper"><button class="btn btn-primary" id="record-start-stop">Start recording</button></div>
+		</div>
+
+		<div id="has-recorded">
+			<audio id="playback" controls loop></audio>
+			<input id="new-name" placeholder="Name" class="form-control"/>
+			<input id="new-start" placeholder="Start time" class="form-control"/>
+			<input id="new-end" placeholder="End time" class="form-control"/>
+			<div class="buttons-wrapper">
+				<button class="btn btn-primary" id="record-submit">Submit</button> or
+				<button class="btn btn-primary" id="record-retry">Try again</button>
+			</div>
+		</div>
+
+		<script src="/static-x/jquery.js"></script>
+		<script src="/static-x/bootstrap.js"></script>
+		<script src="/static-x/encoding.js"></script>
+
+		<script src="/static-x/index.js">
+		</script>
+	</body>
+</html>
