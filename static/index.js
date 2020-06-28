@@ -109,7 +109,7 @@ function showJoined() {
 
 function scheduleNext(tick, nextTime, room_id_string) {
 	get('/get-mixed/' + room_id_string, {}, (response) => {
-		makeAudioBuffer(response, (buffer) => {
+		makeAudioBuffer(response.buffer, (buffer) => {
 			playAudioBuffer(buffer, nextTime);
 
 			setTimeout((() => {
