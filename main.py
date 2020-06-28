@@ -65,10 +65,12 @@ def list_songs():
 def submit_new_song():
     payload = encoding.decode(request.data)
 
-    last_id = int(r.get('GLOBAL:last-song-id'))
+    last_id = r.get('GLOBAL:last-song-id')
 
     if last_id is None:
         last_id = 0
+    else:
+        last_id = int(last_id)
 
     payload['id'] = last_id
 
