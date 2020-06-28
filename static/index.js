@@ -64,7 +64,7 @@ function showSecondary() {
 			(function() {
 				const room_id_string = $('#room-id').val();
 				$(new_button).click(() => {
-					get('/create-room/' + room_id_string + '/' + data[i].id,
+					get('/create-room/' + data[i].id + '/' + room_id_string,
 						{}, (response) => {
 						console.log('room created successfully')
 						get('/join-room/' + room_id_string, (response) => {
