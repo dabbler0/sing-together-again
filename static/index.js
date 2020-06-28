@@ -71,8 +71,8 @@ function showSecondary() {
 							showJoined();
 							beginPlaying(response.user_id, room_id_string);
 						});
-					}
-				);
+					});
+				});
 			}());
 
 			$('#song-list').append(new_button);
