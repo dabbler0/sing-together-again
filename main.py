@@ -17,6 +17,13 @@ from flask import Flask, url_for, request
 import os
 import json
 import encoding
+import redis
+import random
+
+r = redis.from_url(os.environ.get("REDIS_URL"))
+
+def generate_id():
+    return hex(random.getrandbits(128))[2:]
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
@@ -41,23 +48,84 @@ def test1(path):
     with open(static_files[path]) as f:
         return f.read()
 
-'''
 @app.route('/song-list')
 def list_songs():
     return encoding.encode(load('song_list', []))
 
 @app.route('/submit-new-song', methods=['POST'])
 def submit_new_song():
-    song_list = load('song_list', [])
-
     payload = encoding.decode(request.data)
 
-    song_list.append(payload)
+    last_id = int(r.get('GLOBAL:last-song-id'))
 
-    save('song_list', song_list)
+    if last_id is None:
+        last_id = 0
+
+    payload['id'] = last_id
+
+    r.set('SONG-NAME:%d' % last_id, payload['name'])
+    r.set('SONG-DATA:%d' % last_id, payload['sound']) # TODO respect start/end times
+
+    r.set('GLOBAL:last-song-id', last_id + 1)
+
+    return encoding.encode({'success': True, 'id': last_id})
+
+@app.route('/song-list')
+def song_list():
+    last_id = r.get('GLOBAL:last-song-id')
+
+    result = []
+    for i in range(last_id):
+        result.append({
+            'name': r.get('SONG-NAME:%d' % i),
+            'id': i
+        })
+
+    return encoding.encode(result)
+
+@app.route('/create_room/<song_id:song_id>/<room_id:room_id>')
+def create_room(song_id, room_id):
+    room = r.get('ROOM-USERS:%s' % room_id)
+
+    if room is not None:
+        return encoding.encode({'success': False, 'reason': 'Already exists.'})
+
+    # Every room has three things:
+    # a list of users, a song, and a current tick.
+
+    r.set('ROOM-USERS:%s' % room_id, [])
+    r.set('ROOM-SONG:%s' % room_id, int(song_id))
+    r.set('ROOM-TICK:%s' % room_id, 0)
 
     return encoding.encode({'success': True})
-'''
+
+@app.route('/get-mixed/<room_id:room_id>')
+def get_mixed(room_id):
+    song = int(r.get('ROOM-SONG:%s' % room_id))
+
+    if room is None:
+        return encoding.encode({'success': False, 'reason': 'No such room.'})
+
+    song_data = r.get('SONG-DATA:%d' % song)
+
+    return encoding.encode(song_data)
+
+@app.route('/join-room/<room_id:room_id>')
+def join_room(room_id):
+    user_id = generate_id()
+
+    r.append('ROOM-USERS:%s' % room_id, user_id)
+    r.set('USER-ROOM:%s' % user_id, room_id)
+    
+    return encoding.encode({'user_id': user_id})
+
+@app.route('/submit-audio/<user_id:user_id>/<tick:tick>', methods=['POST'])
+def submit_audio(user_id, tick):
+    payload = encoding.decode(request.data)
+
+    r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, payload['sound'])
+
+    return encoding.encode({'success': True})
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
