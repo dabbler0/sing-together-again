@@ -81,7 +81,7 @@ function showSecondary() {
 }
 
 function showJoined() {
-	view.forEach((x) => x.hide());
+	views.forEach((x) => x.hide());
 	$('#joined').show();
 }
 
