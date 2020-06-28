@@ -50,7 +50,16 @@ def test1(path):
 
 @app.route('/song-list')
 def list_songs():
-    return encoding.encode(load('song_list', []))
+    last_song_id = r.get('GLOBAL:last-song-id')
+    if last_song_id is None:
+        last_song_id = 0
+
+    return encoding.encode([
+        {
+            'id': i,
+            'name': r.get('SONG-NAME:%d' % i)
+        } for i in range(last_song_id)
+    ])
 
 @app.route('/submit-new-song', methods=['POST'])
 def submit_new_song():
