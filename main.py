@@ -17,28 +17,10 @@ from flask import Flask, url_for, request
 import os
 import json
 import encoding
-from google.cloud import datastore
-
-client = datastore.Client()
-
-# -- DATA MODEL --
-def make_file(data):
-
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `main.py`.
 app = Flask(__name__)
-
-def load(vname, default):
-    if not os.path.exists(os.path.join('/tmp', vname)):
-        return default
-
-    with open(os.path.join('/tmp', vname), 'rb') as f:
-        return encoding.decode(f.read())
-
-def save(vname, value):
-    with open(os.path.join('/tmp', vname), 'wb') as f:
-        f.write(encoding.encode(value))
 
 @app.route('/')
 def index():
@@ -59,6 +41,7 @@ def test1(path):
     with open(static_files[path]) as f:
         return f.read()
 
+'''
 @app.route('/song-list')
 def list_songs():
     return encoding.encode(load('song_list', []))
@@ -74,25 +57,7 @@ def submit_new_song():
     save('song_list', song_list)
 
     return encoding.encode({'success': True})
-
-@app.route('/create-room/<room_id:room_id>/<song_id:song_id>')
-def create_room(room_id, song_id):
-    room_list = load('room_list', {})
-    song_list = load('song_list', [])
-
-    song_id = int(song_id)
-
-    if room_id not in room_list:
-        room_list[room_id] = {
-            'song': song_id,
-            'users': []
-        }
-
-    save('room_list', room_list)
-
-@app.route('/get-mixed/<room_id:room_id>')
-def get_mixed(room_id):
-    room_list = load('room_list')
+'''
 
 if __name__ == '__main__':
     # This is used when running locally only. When deploying to Google App
