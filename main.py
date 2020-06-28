@@ -136,7 +136,9 @@ def get_mixed(room_id):
 
     song_data = r.get('SONG-DATA:%d' % song)
 
-    return encoding.encode(song_data)
+    segment = read_opus(song_data)
+
+    return encoding.encode(as_mp3(song_data))
 
 @app.route('/join-room/<string:room_id>')
 def join_room(room_id):
