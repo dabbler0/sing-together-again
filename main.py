@@ -53,6 +53,8 @@ def list_songs():
     last_song_id = r.get('GLOBAL:last-song-id')
     if last_song_id is None:
         last_song_id = 0
+    else:
+        last_song_id = int(last_song_id)
 
     return encoding.encode([
         {
