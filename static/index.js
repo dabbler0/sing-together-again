@@ -67,7 +67,7 @@ function showSecondary() {
 					get('/create-room/' + data[i].id + '/' + room_id_string,
 						{}, (response) => {
 						console.log('room created successfully')
-						get('/join-room/' + room_id_string, (response) => {
+						get('/join-room/' + room_id_string, {}, (response) => {
 							showJoined();
 							beginPlaying(response.user_id, room_id_string);
 						});
