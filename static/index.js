@@ -62,7 +62,7 @@ function showSecondary() {
 			new_button.className = 'song list-group-item list-group-item-action';
 
 			(function() {
-				const room_id_string = room_id.val();
+				const room_id_string = $('#room-id').val();
 				$(new_button).click(() => {
 					get('/create-room/' + room_id_string + '/' + data[i].id,
 						{}, (response) => {
