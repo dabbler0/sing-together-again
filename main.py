@@ -98,7 +98,7 @@ def song_list():
 
 @app.route('/create-room/<int:song_id>/<string:room_id>')
 def create_room(song_id, room_id):
-    room = r.get('ROOM-USERS:%s' % room_id)
+    room = r.get('ROOM-SONG:%s' % room_id)
 
     if room is not None:
         return encoding.encode({'success': False, 'reason': 'Already exists.'})
@@ -106,7 +106,7 @@ def create_room(song_id, room_id):
     # Every room has three things:
     # a list of users, a song, and a current tick.
 
-    r.set('ROOM-USERS:%s' % room_id, [])
+    #r.set('ROOM-USERS:%s' % room_id, []) # Created implicitly
     r.set('ROOM-SONG:%s' % room_id, song_id)
     r.set('ROOM-TICK:%s' % room_id, 0)
 
