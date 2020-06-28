@@ -114,10 +114,12 @@ def create_room(song_id, room_id):
 
 @app.route('/get-mixed/<string:room_id>')
 def get_mixed(room_id):
-    song = int(r.get('ROOM-SONG:%s' % room_id))
+    song = r.get('ROOM-SONG:%s' % room_id)
 
-    if room is None:
+    if song is None:
         return encoding.encode({'success': False, 'reason': 'No such room.'})
+    else:
+        song = int(song)
 
     song_data = r.get('SONG-DATA:%d' % song)
 
