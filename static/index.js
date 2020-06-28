@@ -43,7 +43,7 @@ function recordMedia(callback) {
  * ----- UI stuff -----
  **/
 
-const views = [$('#initial'), $('#secondary'), $('#recording'), $('#has-recorded')];
+const views = [$('#initial'), $('#secondary'), $('#recording'), $('#has-recorded'), $('#joined')];
 
 function showPrimary() {
 	views.forEach((x) => x.hide());
