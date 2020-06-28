@@ -88,7 +88,8 @@ function showJoined() {
 // Stopgap for now
 function beginPlaying(user_id, room_id_string) {
 	get('/get-mixed/' + room_id_string, {}, (response) => {
-		const url = URL.createObjectURL(data);
+		const blob = new Blob([response]);
+		const url = URL.createObjectURL(blob):
 
 		$('#joined-playback').attr('src', url);
 	});
