@@ -93,7 +93,7 @@ function scheduleNext(tick, nextTime, room_id_string, user_id) {
 	get('/get-mixed/' + room_id_string, {}, (response) => {
 		makeAudioBuffer(response.buffer, (buffer) => {
 			playAudioBuffer(buffer, nextTime);
-			recordAtTime(nextTime, nextTime + buffer.duration, user_id)
+			recordAtTime(nextTime, nextTime + buffer.duration, user_id, tick)
 
 			setTimeout((() => {
 				scheduleNext(
