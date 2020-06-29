@@ -61,6 +61,57 @@ function playAudioBuffer(buffer, time) {
 	}
 }
 
+function recordAtTime(start_time, end_time, user_id, tick) {
+	function kickoffTimeCheck() {
+		if (context.currentTime - start_time < 500) {
+			beginActualRecording(context.currentTime - start_time);
+		} else {
+			setTimeout(kickoffTimeCheck, 100);
+		} 
+	}
+
+	function beginActualRecording(offset) {
+		const stop = recordMedia((data) => {
+			post(
+				'/submit-audio/' + user_id + '/' + tick,
+				{'sound': data[0].buffer, 'offset': offset}
+				// no callback I guess
+			);
+		});
+
+		setTimeout(
+			stop,
+			(end_time - context.currentTime) * 1000 + 50 // 50 ms buffer
+		);
+	}
+
+	kickoffTimeCheck();
+}
+
+function scheduleNext(tick, nextTime, room_id_string, user_id) {
+	// trivial
+	get('/get-mixed/' + room_id_string, {}, (response) => {
+		makeAudioBuffer(response.buffer, (buffer) => {
+			playAudioBuffer(buffer, nextTime);
+			recordAtTime(nextTime, nextTime + buffer.duration, user_id)
+
+			setTimeout((() => {
+				scheduleNext(
+					tick + 1,
+					nextTime + buffer.duration,
+					room_id_string,
+					user_id);
+			}),
+			(nextTime + buffer.duration
+			 - context.currentTime) * 1000);
+		});
+	});
+}
+
+function beginPlaying(user_id, room_id_string) {
+	scheduleNext(0, context.currentTime, room_id_string, user_id);
+}
+
 /*
  * ----- UI stuff -----
  **/
@@ -114,23 +165,6 @@ $('#join').click(() => {
 function showJoined() {
 	views.forEach((x) => x.hide());
 	$('#joined').show();
-}
-
-function scheduleNext(tick, nextTime, room_id_string) {
-	// trivial
-	get('/get-mixed/' + room_id_string, {}, (response) => {
-		makeAudioBuffer(response.buffer, (buffer) => {
-			playAudioBuffer(buffer, nextTime);
-
-			setTimeout((() => {
-				scheduleNext(tick + 1, nextTime + buffer.duration, room_id_string);
-			}), buffer.duration * 1000);
-		});
-	});
-}
-
-function beginPlaying(user_id, room_id_string) {
-	scheduleNext(0, 0, room_id_string);
 }
 
 function showRecording() {
