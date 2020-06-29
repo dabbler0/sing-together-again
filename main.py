@@ -107,6 +107,13 @@ def read_opus(data):
             BytesIO(data),
             codec = 'opus'
     )
+
+def read_mp3(data)
+    return AudioSegment.from_file(
+            BytesIO(data),
+            codec = 'mp3'
+    )
+
 def as_mp3(audio_segment):
     buf = BytesIO()
     audio_segment.export(buf, format='mp3')
@@ -139,7 +146,20 @@ def get_mixed(room_id):
 
     song_data = r.get('SONG-DATA:%d' % song)
 
-    return encoding.encode(song_data)
+    segment = read_mp3(song_data)
+
+    users = r.lrange('ROOM-USERS:%s' % room_id)
+
+    # Dynamically overlay.
+    for user in users:
+        user_audio = r.get('USER-MOST-RECENT-AUDIO:%s' % user)
+
+        if user_audio is not None:
+            user_segment = read_mp3(user_audio)
+
+            segment = segment.overlay(user_segment)
+
+    return encoding.encode(as_mp3(segment))
 
 @app.route('/join-room/<string:room_id>')
 def join_room(room_id):
@@ -154,7 +174,9 @@ def join_room(room_id):
 def submit_audio(user_id, tick):
     payload = encoding.decode(request.data)
 
-    r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, payload['sound'])
+    segment = read_opus(payload['sound'])
+
+    r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, as_mp3(segment))
 
     return encoding.encode({'success': True})
 
