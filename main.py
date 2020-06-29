@@ -150,11 +150,14 @@ def get_mixed(room_id):
 
     users = r.lrange('ROOM-USERS:%s' % room_id, 0, -1)
 
+    print('users': users)
+
     # Dynamically overlay.
     for user in users:
         user_audio = r.get('USER-MOST-RECENT-AUDIO:%s' % user)
 
         if user_audio is not None:
+            print('FOUND AUDIO FOR USER', user)
             user_segment = read_mp3(user_audio)
 
             segment = segment.overlay(user_segment)
