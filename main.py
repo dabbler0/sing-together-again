@@ -161,6 +161,8 @@ def get_mixed(room_id):
             user_segment = read_mp3(user_audio)
 
             segment = segment.overlay(user_segment)
+        else:
+            print('REQUEST FOR USER-MOST-RECENT-AUDIO:%s RETURNED NONE' % user)
 
     return encoding.encode(as_mp3(segment))
 
@@ -180,6 +182,7 @@ def submit_audio(user_id, tick):
     segment = read_opus(payload['sound'])
 
     r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, as_mp3(segment))
+    print('JUST SAVED USER-MOST-RECENT-AUDIO:%s' % user)
 
     return encoding.encode({'success': True})
 
