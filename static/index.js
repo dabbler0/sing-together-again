@@ -77,7 +77,7 @@ function recordAtTime(start_time, end_time, user_id, tick) {
 				{'sound': data[0].buffer, 'offset': offset}
 				// no callback I guess
 			);
-		});
+		}).stop;
 
 		setTimeout(
 			stop,
