@@ -124,7 +124,7 @@ function scheduleNext(tick, nextTime, room_id_string) {
 
 			setTimeout((() => {
 				scheduleNext(tick + 1, nextTime + buffer.duration, room_id_string);
-			}), buffer.duration);
+			}), buffer.duration * 1000);
 		});
 	});
 }
