@@ -157,12 +157,14 @@ def get_mixed(room_id):
         user_audio = r.get('USER-MOST-RECENT-AUDIO:%s' % user.decode('utf-8'))
 
         if user_audio is not None:
-            print('FOUND AUDIO FOR USER', user)
-            user_segment = read_mp3(user_audio)
+            user_audio = encoding.decode(user_audio)
 
-            segment = segment.overlay(user_segment)
-        else:
-            print('REQUEST FOR USER-MOST-RECENT-AUDIO:%s RETURNED NONE' % user.decode('utf-8'))
+            sound = user_audio['sound']
+            offset = user_audio['offset']
+
+            user_segment = read_mp3(sound)
+
+            segment = segment.overlay(user_segment, offset)
 
     return encoding.encode(as_mp3(segment))
 
@@ -180,8 +182,20 @@ def submit_audio(user_id, tick):
     payload = encoding.decode(request.data)
 
     segment = read_opus(payload['sound'])
+    offset = payload['offset']
 
-    r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, as_mp3(segment))
+    if offset > 0:
+        segment = segment[offset * 1000:]
+        offset = 0
+    else:
+        offset = -offset
+
+    r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, encoding.encode(
+        {
+            'offset': offset,
+            'sound': as_mp3(segment)
+        })
+    )
 
     return encoding.encode({'success': True})
 

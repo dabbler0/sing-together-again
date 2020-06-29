@@ -63,7 +63,7 @@ function playAudioBuffer(buffer, time) {
 
 function recordAtTime(start_time, end_time, user_id, tick) {
 	function kickoffTimeCheck() {
-		if (context.currentTime - start_time < 500) {
+		if (context.currentTime - start_time < 0.5) {
 			beginActualRecording(context.currentTime - start_time);
 		} else {
 			setTimeout(kickoffTimeCheck, 100);
@@ -75,7 +75,8 @@ function recordAtTime(start_time, end_time, user_id, tick) {
 			new Response(data[0]).arrayBuffer().then((buffer) => {
 				post(
 					'/submit-audio/' + user_id + '/' + tick,
-					{'sound': buffer, 'offset': offset}
+					{'sound': buffer, 'offset': Math.round(
+						offset * 1000)}
 					// no callback I guess
 				);
 			});
