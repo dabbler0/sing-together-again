@@ -77,6 +77,7 @@ function showSecondary() {
 	$('#secondary').show();
 
 	$('#song-list').html('');
+
 	get('/song-list', {}, (data) => {
 		for (let i = 0; i < data.length; i++) {
 			let new_button = document.createElement('button');
@@ -101,6 +102,14 @@ function showSecondary() {
 		}
 	});
 }
+
+$('#join').click(() => {
+	const room_id_string = $('#room-id').val();
+	get('/join-room/' + room_id_string, {}, (response) => {
+		showJoined();
+		beginPlaying(response.user_id, room_id_string);
+	});
+});
 
 function showJoined() {
 	views.forEach((x) => x.hide());
