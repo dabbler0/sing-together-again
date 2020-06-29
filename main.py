@@ -154,7 +154,7 @@ def get_mixed(room_id):
 
     # Dynamically overlay.
     for user in users:
-        user_audio = r.get('USER-MOST-RECENT-AUDIO:%s' % user)
+        user_audio = r.get('USER-MOST-RECENT-AUDIO:%s' % user.decode('utf-8'))
 
         if user_audio is not None:
             print('FOUND AUDIO FOR USER', user)
@@ -162,7 +162,7 @@ def get_mixed(room_id):
 
             segment = segment.overlay(user_segment)
         else:
-            print('REQUEST FOR USER-MOST-RECENT-AUDIO:%s RETURNED NONE' % user)
+            print('REQUEST FOR USER-MOST-RECENT-AUDIO:%s RETURNED NONE' % user.decode('utf-8'))
 
     return encoding.encode(as_mp3(segment))
 
@@ -182,7 +182,6 @@ def submit_audio(user_id, tick):
     segment = read_opus(payload['sound'])
 
     r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, as_mp3(segment))
-    print('JUST SAVED USER-MOST-RECENT-AUDIO:%s' % user)
 
     return encoding.encode({'success': True})
 
