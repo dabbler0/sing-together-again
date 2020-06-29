@@ -72,11 +72,13 @@ function recordAtTime(start_time, end_time, user_id, tick) {
 
 	function beginActualRecording(offset) {
 		const stop = recordMedia((data) => {
-			post(
-				'/submit-audio/' + user_id + '/' + tick,
-				{'sound': data[0].buffer, 'offset': offset}
-				// no callback I guess
-			);
+			new Response(data[0]).arrayBuffer().then((buffer) => {
+				post(
+					'/submit-audio/' + user_id + '/' + tick,
+					{'sound': buffer, 'offset': offset}
+					// no callback I guess
+				);
+			});
 		}).stop;
 
 		setTimeout(
