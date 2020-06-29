@@ -83,7 +83,8 @@ def submit_new_song():
     sound = as_mp3(segment)
 
     r.set('SONG-NAME:%d' % last_id, payload['name'])
-    r.set('SONG-DATA:%d' % last_id, sound)
+    r.set('SONG-DATA-0:%d' % last_id, as_mp3(segment[:len(segment) // 2]))
+    r.set('SONG-DATA-1:%d' % last_id, as_mp3(segment[len(segment) // 2:]))
 
     r.set('GLOBAL:last-song-id', last_id + 1)
 
@@ -135,8 +136,8 @@ def create_room(song_id, room_id):
 
     return encoding.encode({'success': True})
 
-@app.route('/get-mixed/<string:room_id>')
-def get_mixed(room_id):
+@app.route('/get-mixed/<string:room_id>/<int:tick>')
+def get_mixed(room_id, tick):
     song = r.get('ROOM-SONG:%s' % room_id)
 
     if song is None:
@@ -144,7 +145,7 @@ def get_mixed(room_id):
     else:
         song = int(song)
 
-    song_data = r.get('SONG-DATA:%d' % song)
+    song_data = r.get('SONG-DATA-%d:%d' % (tick % 2, song))
 
     segment = read_mp3(song_data)
 
@@ -154,7 +155,7 @@ def get_mixed(room_id):
 
     # Dynamically overlay.
     for user in users:
-        user_audio = r.get('USER-MOST-RECENT-AUDIO:%s' % user.decode('utf-8'))
+        user_audio = r.get('USER-AUDIO-%d:%s' % (tick % 2, user.decode('utf-8')))
 
         if user_audio is not None:
             user_audio = encoding.decode(user_audio)
@@ -162,7 +163,11 @@ def get_mixed(room_id):
             sound = user_audio['sound']
             offset = user_audio['offset']
 
-            user_segment = read_mp3(sound)
+            try:
+                user_segment = read_mp3(sound)
+            except Exception:
+                r.delete('USER-AUDIO-%d:%s' % (tick % 2, user))
+                continue
 
             segment = segment.overlay(user_segment, offset)
 
@@ -183,14 +188,15 @@ def submit_audio(user_id, tick):
 
     segment = read_opus(payload['sound'])
     offset = payload['offset']
+    offset_sign = payload['offset-sign']
 
-    if offset > 0:
-        segment = segment[offset * 1000:]
+    print(offset, offset_sign)
+
+    if not offset_sign:
+        segment = segment[offset:]
         offset = 0
-    else:
-        offset = -offset
 
-    r.set('USER-MOST-RECENT-AUDIO:%s' % user_id, encoding.encode(
+    r.set('USER-AUDIO-%d:%s' % (tick % 2, user_id), encoding.encode(
         {
             'offset': offset,
             'sound': as_mp3(segment)

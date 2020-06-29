@@ -62,21 +62,26 @@ function playAudioBuffer(buffer, time) {
 }
 
 function recordAtTime(start_time, end_time, user_id, tick) {
+	console.log('I got a request to record at time', start_time);
 	function kickoffTimeCheck() {
-		if (context.currentTime - start_time < 0.5) {
-			beginActualRecording(context.currentTime - start_time);
+		if (start_time - context.currentTime < 0.5) {
+			beginActualRecording(start_time - context.currentTime);
 		} else {
 			setTimeout(kickoffTimeCheck, 100);
 		} 
 	}
 
 	function beginActualRecording(offset) {
+		console.log('beginning actual recording at time', context.currentTime, 'for time', start_time, 'with offset', offset);
 		const stop = recordMedia((data) => {
 			new Response(data[0]).arrayBuffer().then((buffer) => {
 				post(
 					'/submit-audio/' + user_id + '/' + tick,
-					{'sound': buffer, 'offset': Math.round(
-						offset * 1000)}
+					{'sound': buffer, 'offset':
+						Math.abs(Math.round(
+						offset * 1000)
+						),
+					'offset-sign': (offset < 0)}
 					// no callback I guess
 				);
 			});
@@ -93,7 +98,7 @@ function recordAtTime(start_time, end_time, user_id, tick) {
 
 function scheduleNext(tick, nextTime, room_id_string, user_id) {
 	// trivial
-	get('/get-mixed/' + room_id_string, {}, (response) => {
+	get('/get-mixed/' + room_id_string + '/' + tick, {}, (response) => {
 		makeAudioBuffer(response.buffer, (buffer) => {
 			playAudioBuffer(buffer, nextTime);
 			recordAtTime(nextTime, nextTime + buffer.duration, user_id, tick)
@@ -106,7 +111,7 @@ function scheduleNext(tick, nextTime, room_id_string, user_id) {
 					user_id);
 			}),
 			(nextTime + buffer.duration
-			 - context.currentTime) * 1000);
+			 - context.currentTime) * 1000 - 2000);
 		});
 	});
 }
