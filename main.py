@@ -150,7 +150,7 @@ def get_mixed(room_id):
 
     users = r.lrange('ROOM-USERS:%s' % room_id, 0, -1)
 
-    print('users': users)
+    print('users', users)
 
     # Dynamically overlay.
     for user in users:
