@@ -78,9 +78,12 @@ def submit_new_song():
         last_id = int(last_id)
 
     payload['id'] = last_id
+    
+    segment = read_opus(payload['sound']) # TODO respect start/end times
+    sound = as_mp3(segment)
 
     r.set('SONG-NAME:%d' % last_id, payload['name'])
-    r.set('SONG-DATA:%d' % last_id, payload['sound']) # TODO respect start/end times
+    r.set('SONG-DATA:%d' % last_id, sound)
 
     r.set('GLOBAL:last-song-id', last_id + 1)
 
@@ -136,9 +139,7 @@ def get_mixed(room_id):
 
     song_data = r.get('SONG-DATA:%d' % song)
 
-    segment = read_opus(song_data)
-
-    return encoding.encode(as_mp3(segment))
+    return encoding.encode(song_data)
 
 @app.route('/join-room/<string:room_id>')
 def join_room(room_id):
