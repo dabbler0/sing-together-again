@@ -108,7 +108,7 @@ def read_opus(data):
             codec = 'opus'
     )
 
-def read_mp3(data)
+def read_mp3(data):
     return AudioSegment.from_file(
             BytesIO(data),
             codec = 'mp3'
