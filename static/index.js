@@ -319,7 +319,7 @@ $('#record-start-stop').click(() => {
 	} else {
 		MOST_RECENT_STOP_FUNCTION = recordMedia((data) => {
 			MOST_RECENT_RECORDED_DATA = data;
-			FILE_FORMAT = 'opus';
+			FILE_FORMAT = 'webm';
 
 			showView('submitting');
 			populateSubmittedAudio();
@@ -332,7 +332,7 @@ $('#record-start-stop').click(() => {
 	}
 });
 
-let FILE_FORMAT = 'opus';
+let FILE_FORMAT = 'webm';
 
 $('#upload').click(() => {
 	const el = document.getElementById('file-upload');
