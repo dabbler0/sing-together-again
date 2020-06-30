@@ -1,90 +1,155 @@
 <html>
 	<head>
 		<link rel="stylesheet" href="/static-x/bootstrap.css"/>
+		<link rel="stylesheet" href="/static-x/style.css"/>
 <style>
-#initial, #recording, #has-recorded, #joined {
-	padding: 10px;
-	width: 500px;
-	position: absolute;
-	left: 50%;
-	margin-left: -250px;
-	top: 50%;
-	border-radius: 5px;
-	background: rgba(0, 0, 0, 0.1);
-	text-align: center;
-}
-#initial, #recording, #joined {
-	height: 150px;
-	margin-top: -75px;
-}
-#recording, #has-recorded, #joined {
-	display: none;
-}
-#has-recorded {
-	height: 250px;
-	margin-top: -125px;
-}
-.room-id-wrapper, .buttons-wrapper {
-	padding: 10px;
-}
-#secondary {
-	padding: 10px;
-	width: 500px;
-	height: 500px;
-	position: absolute;
-	left: 50%;
-	margin-left: -250px;
-	top: 50%;
-	margin-top: -250px;
-	border-radius: 2px;
-	background: rgba(0, 0, 0, 0.1);
-	text-align: center;
-	display: none;
-}
-#song-list {
-	height: 430px;
-	width: 460px;
-	margin: 10px;
-	border-radius: 5px;
-	overflow: auto;
-	background: #FFF;
-}
 </style>
 	</head>
 	<body>
-		<!-- First dialog box -->
-		<div id="initial">
-			<div class="room-id-wrapper"><input id="room-id" class="form-control" placeholder="Room ID"/></div>
-			<div class="buttons-wrapper"><button class="btn btn-primary" id="join">Join room</button> or <button class="btn btn-primary" id="create-room">Create new Room</button></div>
+		<!-- WELCOME -->
+		<div id="welcome">
+			<div id="welcome-header" class="header">
+				sing together again
+			</div>
+			<div id="welcome-action">
+				<button id="join" class="btn btn-success">
+					Join
+				</button>
+				or
+				<button id="create" class="btn btn-primary">
+					Create
+				</button>
+			</div>
+			<div id="welcome-about">
+				<p>Sing repeated songs in harmony over the internet. Everyone hears everyone else's previous repetition.</p>
+			</div>
+			<div id="welcome-footer" class="footer">
+				By Anthony Bau. MIT license.
+			</div>
 		</div>
 
-		<!-- Second dialog box -->
-		<div id="secondary">
-			<div id="song-list">
+		<!-- JOINING -->
+		<div id="joining">
+			<div id="joining-header" class="header">
+				sing together again
 			</div>
-			<div id="new-song-wrapper">
-				<button class="btn btn-primary" id="new-song">Record new accompaniment</button>
+
+			<div id="joining-action">
+				Join a service
+				<input id="room" class="form-control" placeholder="Room ID"/>
+				<input id="name" class="form-control" placeholder="Your name"/>
+				<div>
+					<button id="join-service" class="btn btn-success">Join</button>
+					<button id="cancel-join" class="btn btn-secondary">Cancel</button>
+				</div>
+
+			</div>
+
+			<div id="joining-footer" class="footer">
+				By Anthony Bau. MIT license.
 			</div>
 		</div>
 
+		<!-- CREATING -->
+		<div id="creating">
+			<div id="creating-header" class="header">
+				sing together again
+			</div>
+
+			<div id="creating-action">
+				<div id="create-action-header">
+					Create the order of service
+				</div>
+				<div id="bulletin">
+					<div id="existing-bulletin">
+					</div>
+					<div id="bulletin-add-wrapper">
+						<button id="new-section" class="list-group-item list-group-item-action">+add new section</button>
+					</div>
+				</div>
+
+				<div id="create-action-footer">
+					<button id="new-song" class="btn btn-success">New Song</button>
+					<button id="create-service" class="btn btn-primary">Finish</button>
+					<button id="cancel-create" class="btn btn-secondary">Cancel</button>
+				</div>
+			</div>
+
+			<div id="creating-footer" class="footer">
+				By Anthony Bau. MIT license.
+			</div>
+		</div>
+
+		<!-- Recording -->
 		<div id="recording">
-			<div class="buttons-wrapper"><button class="btn btn-primary" id="record-start-stop">Start recording</button></div>
-		</div>
+			<div id="recording-header" class="header">
+				sing together again
+			</div>
 
-		<div id="has-recorded">
-			<audio id="playback" controls loop></audio>
-			<input id="new-name" placeholder="Name" class="form-control"/>
-			<input id="new-start" placeholder="Start time" class="form-control"/>
-			<input id="new-end" placeholder="End time" class="form-control"/>
-			<div class="buttons-wrapper">
-				<button class="btn btn-primary" id="record-submit">Submit</button> or
-				<button class="btn btn-primary" id="record-retry">Try again</button>
+			<div id="recording-action">
+				Record or upload a new accompaniment
+				<div id="recording-buttons">
+					<div class="form-group">
+
+						<button id="upload" class="btn btn-primary">Upload</button>
+						<input type="file" id="file-upload" class="form-control-file" style="display: inline-block"/>
+					</div>
+					<div>
+						Or <button id="record-start-stop" class="btn btn-success">Start recording</button></div>
+				</div>
+
+			</div>
+
+			<div id="recording-footer" class="footer">
+				By Anthony Bau. MIT license.
 			</div>
 		</div>
 
-		<div id="joined">
-			<!-- TODO make this correct -->
-			<audio id="joined-playback" controls loop></audio>
+		<!-- Submitting -->
+		<div id="submitting">
+			<div id="submitting-header" class="header">
+				sing together again
+			</div>
+
+			<div id="submitting-action">
+				<div>Record or upload a new accompaniment</div>
+				<div style="padding:10px">
+				<audio id="playback" controls loop></audio>
+				</div>
+				<div style="padding:10px">
+				<input id="song-name" class="form-control" placeholder="Name of song"/>
+				</div>
+				<div style="padding:10px">
+					<button id="submit" class="btn btn-success">Submit</button> or <button id="retry">Try again</button>
+				</div>
+
+			</div>
+
+			<div id="joining-footer" class="footer">
+				By Anthony Bau. MIT license.
+			</div>
+		</div>
+
+		<!-- Singing -->
+		<div id="singing">
+			<div id="singing-header" class="header">
+				sing together again
+			</div>
+
+			<div id="singing-action">
+				<div id="create-action-header">
+					Room <span id="room-id-display"></span>
+				</div>
+				<div id="people-present" class="col-sm">
+				</div>
+				<div id="singing-bulletin" class="col-sm">
+				</div>
+				</div>
+			</div>
+
+			<div id="singing-footer" class="footer">
+				By Anthony Bau. MIT license.
+			</div>
 		</div>
 
 		<script src="/static-x/jquery.js"></script>

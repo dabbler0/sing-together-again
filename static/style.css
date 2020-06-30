@@ -1,0 +1,151 @@
+#welcome {
+	width: 100%:
+	height: 100%;
+}
+
+#joining, #creating, #recording, #submitting, #singing {
+	display: none;
+}
+
+.bulletin-element {
+	padding: 10px;
+	border-bottom: 1px solid #888;
+}
+
+.bulletin-desc {
+	font-size: 15px;
+}
+
+#joining-action, #recording-action, #submitting-action {
+	background: #DDD;
+	margin: 30px;
+	border-radius: 5px;
+	padding: 30px;
+	text-align: center;
+	font-size: 25px;
+}
+
+#creating-action, #singing-action {
+	background: #DDD;
+	border-radius: 5px;
+	padding: 10px;
+	text-align: center;
+	font-size: 25px;
+	position: absolute;
+	top: 90px;
+	bottom: 90px;
+	left: 30px;
+	right: 30px;
+}
+
+#create-action-header {
+	position: absolute;
+	top: 0px;
+	left: 0px; right: 0px;
+	height: 70px;
+	padding: 10px;
+}
+
+#singing-bulletin, #people-present {
+	border-radius: 5px;
+	background: #FFF;
+}
+
+#singing-bulletin {
+	position: absolute;
+	top: 70px;
+	bottom: 70px;
+	left: 340px; right: 20px;
+}
+
+#people-present {
+	position: absolute;
+	top: 70px;
+	bottom: 70px;
+	width: 300px;
+	left: 20px;
+}
+
+#bulletin {
+	position: absolute;
+	top: 70px;
+	bottom: 70px;
+	left: 20px; right: 20px;
+	border-radius: 5px;
+	background: #FFF;
+}
+
+#create-action-footer {
+	position: absolute;
+	bottom: 0px;
+	left: 0px; right: 0px;
+	font-size: 20px;
+	padding: 10px;
+	height: 70px;
+}
+
+#bulletin {
+	background: #FFF;
+	overflow: auto;
+	font-size: 20px;
+}
+
+#create-action-footer .btn {
+	font-size: 20px;
+}
+
+#recording-buttons {
+	padding: 10px;
+	font-size: 20px;
+}
+
+#joining-action .btn, #joining-action .form-control, #recording-action .btn,
+#submitting-action .btn, #submitting-action .form-control {
+	font-size: inherit;
+	line-height: 25px;
+}
+
+#joining-action .form-control {
+	height: 40px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.header {
+	font-size: 35px;
+	text-align: center;
+	padding: 10px;
+	background: #DDD;
+	height: 70px;
+}
+
+#welcome-action {
+	text-align: center;
+	padding: 10px;
+	padding-top: 50px;
+	padding-bottom: 50px;
+	font-size: 25px;
+}
+#welcome-action .btn {
+	font-size: 25px;
+}
+
+#welcome-about {
+	background: #DDD;
+	margin-left: 30px;
+	margin-right: 30px;
+	border-radius: 5px;
+	padding: 30px;
+	font-size: 20px;
+	text-align: center;
+}
+
+.footer {
+	position: absolute;
+	bottom: 0px;
+	left: 0px; right: 0px;
+	background: #DDD;
+	text-align: center;
+	line-height: 35px;
+	padding: 10px;
+}
