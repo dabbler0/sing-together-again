@@ -143,11 +143,13 @@ def create_room():
 
     return encoding.encode({'room_id': room_id})
 
-@app.route('/get-mixed/<string:room_id>/<int:tick>')
-def get_mixed(room_id, tick):
+@app.route('/get-mixed/<string:room_id>/<string:user_id>/<int:tick>')
+def get_mixed(room_id, user_id, tick):
     song = r.get('ROOM-SONG:%s' % room_id)
 
     index = r.get('ROOM-INDEX:%s' % room_id)
+
+    r.set('USER-LAST-ACTIVE:%s' % user_id, int(time.time()))
 
     if index is None:
         return encoding.encode({'sucess': False, 'reason': 'NO_SUCH_ROOM'})
@@ -155,10 +157,10 @@ def get_mixed(room_id, tick):
     users = [user.decode('utf-8') for user in r.lrange('ROOM-USERS:%s' % room_id, 0, -1)]
 
     user_names = [r.get('USER-NAME:%s' % user).decode('utf-8') for user in users]
+    current_time = time.time()
 
     if song is None:
         #TODO handle disconnection
-        '''
         for user in users:
             last_time = int(r.get('USER-LAST-ACTIVE:%s' % user_id))
 
@@ -168,7 +170,6 @@ def get_mixed(room_id, tick):
                 r.lrem('ROOM-USERS:%s' % room_id, 0, user)
                 r.delete('USER-AUDIO-0:%s' % user)
                 r.delete('USER-AUDIO-1:%s' % user)
-        '''
 
         return encoding.encode({'success': False,
             'users': user_names,
@@ -182,7 +183,6 @@ def get_mixed(room_id, tick):
     segment = read_mp3(song_data)
 
     # Dynamically overlay.
-    current_time = time.time()
     for user in users:
         user_audio = r.get('USER-AUDIO-%d:%s' % (tick % 2, user))
 
@@ -190,8 +190,9 @@ def get_mixed(room_id, tick):
 
             last_time = int(r.get('USER-LAST-ACTIVE:%s' % user))
 
-            # This user has disconnected.
-            if current_time - last_time > len(segment) * 2:
+            # A user who has been absent for an entire repetition
+            # is considered disconnected.
+            if current_time - last_time > len(segment) // 500:
                 r.lrem('ROOM-USERS:%s' % room_id, 0, user)
                 r.delete('USER-AUDIO-0:%s' % user)
                 r.delete('USER-AUDIO-1:%s' % user)
@@ -278,15 +279,24 @@ def download_audio(song_id):
 
     return Response(as_mp3(segment_0 + segment_1), mimetype='audio/mpeg')
 
-@app.route('/submit-audio/<string:user_id>/<int:tick>', methods=['POST'])
-def submit_audio(user_id, tick):
+@app.route('/submit-audio/<string:user_id>/<int:index>/<int:tick>', methods=['POST'])
+def submit_audio(user_id, index, tick):
     payload = encoding.decode(request.data)
 
     segment = read_opus(payload['sound'])
     offset = payload['offset']
     offset_sign = payload['offset-sign']
 
-    print(offset, offset_sign)
+    room_id = r.get('USER-ROOM:%s' % user_id).decode('utf-8')
+    room_index = int(r.get('ROOM-INDEX:%s' % room_id))
+
+    room_song = r.get('ROOM-SONG:%s' % room_song)
+
+    if room_index != index or room_song is None:
+        return encoding.encode({
+            'success': False,
+            'reason': 'Desynced with the bulletin'
+        })
 
     if not offset_sign:
         segment = segment[offset:]

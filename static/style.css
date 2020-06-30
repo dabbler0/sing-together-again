@@ -38,7 +38,7 @@
 	right: 30px;
 }
 
-#create-action-header {
+#create-action-header, #singing-action-header {
 	position: absolute;
 	top: 0px;
 	left: 0px; right: 0px;
@@ -75,7 +75,7 @@
 	background: #FFF;
 }
 
-#create-action-footer {
+#create-action-footer, #singing-action-footer {
 	position: absolute;
 	bottom: 0px;
 	left: 0px; right: 0px;
@@ -148,6 +148,12 @@
 	text-align: center;
 	line-height: 35px;
 	padding: 10px;
+}
+
+#file-upload {
+	background: #FFF;
+	border-radius: 5px;
+	padding: 5px;
 }
 
 #existing-bulletin .list-group-item:nth-child(even) {

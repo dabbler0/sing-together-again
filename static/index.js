@@ -61,7 +61,7 @@ function playAudioBuffer(buffer, time) {
 	}
 }
 
-function recordAtTime(start_time, end_time, user_id, tick) {
+function recordAtTime(start_time, end_time, assumed_index, user_id, tick) {
 	console.log('I got a request to record at time', start_time);
 	function kickoffTimeCheck() {
 		if (start_time - context.currentTime < 0.5) {
@@ -76,7 +76,7 @@ function recordAtTime(start_time, end_time, user_id, tick) {
 		const stop = recordMedia((data) => {
 			new Response(data[0]).arrayBuffer().then((buffer) => {
 				post(
-					'/submit-audio/' + user_id + '/' + tick,
+					'/submit-audio/' + user_id + '/' + assumed_index + '/' + tick,
 					{'sound': buffer, 'offset':
 						Math.abs(Math.round(
 						offset * 1000)
@@ -98,21 +98,25 @@ function recordAtTime(start_time, end_time, user_id, tick) {
 
 function scheduleNext(tick, nextTime, room_id_string, user_id) {
 	// trivial
-	get('/get-mixed/' + room_id_string + '/' + tick, {}, (response) => {
+	get('/get-mixed/' + room_id_string + '/' + user_id + '/' + tick, {}, (response) => {
 		populateUsers(response.users);
 
-		selectSong(Number(response.index));
+		const assumed_index = response.index;
 
-		if (response.success === false) {
+		if (response.success === false || response.index != INDEX) {
+			CURRENTLY_SINGING = false;
+			selectSong(Number(response.index));
 			setTimeout((() => {
 				scheduleNext(0, context.currentTime, room_id_string, user_id);
 			}), 1000);
 			return;
 		}
+		selectSong(Number(response.index));
+		CURRENTLY_SINGING = true;
 
 		makeAudioBuffer(response.sound.buffer, (buffer) => {
 			playAudioBuffer(buffer, nextTime);
-			recordAtTime(nextTime, nextTime + buffer.duration, user_id, tick)
+			recordAtTime(nextTime, nextTime + buffer.duration, assumed_index, user_id, tick)
 
 			setTimeout((() => {
 				scheduleNext(
@@ -312,8 +316,6 @@ $('#cancel-create').click(() => {
 	showView('welcome');
 });
 
-// TODO lots of fancy stuff.
-
 /*
  * VIEW 3: SINGING
  * TODO
@@ -355,7 +357,7 @@ $('#record-start-stop').click(() => {
 
 let FILE_FORMAT = 'webm';
 
-$('#upload').click(() => {
+$('#file-upload').change(() => {
 	const el = document.getElementById('file-upload');
 	MOST_RECENT_RECORDED_DATA = el.files;
 
@@ -418,10 +420,50 @@ function populateUsers(users) {
 let WRAPPER_DIVS = [];
 
 function selectSong(index) {
+	INDEX = index;
 	WRAPPER_DIVS.forEach((x) => $(x).removeClass('bulletin-current'));
-	if (index >= 0)
+	if (index >= 0) {
 		$(WRAPPER_DIVS[index]).addClass('bulletin-current');
+		WRAPPER_DIVS[index].scrollIntoView();
+	}
 }
+
+let SINGING_BULLETIN, INDEX, CURRENTLY_SINGING = false;
+
+$('#advance').click(() => {
+	if (CURRENTLY_SINGING) {
+		get('/stop-song/' + CURRENT_ROOM_ID, {}, () => {
+			if (INDEX + 1 < SINGING_BULLETIN.length) {
+				$('#advance').text('Start ' + SINGING_BULLETIN[INDEX + 1].name);
+			} else {
+				$('#advance').text('The service is over.');
+				$('#advance').attr('disabled', true);
+			}
+			CURRENTLY_SINGING = false;
+		});
+	} else {
+		const new_index = INDEX + 1;
+		selectSong(new_index);
+
+		if (INDEX < SINGING_BULLETIN.length) {
+			if (SINGING_BULLETIN[new_index].hasOwnProperty('song')) {
+				get('/set-index/' + CURRENT_ROOM_ID + '/' + new_index, {}, () => {
+					get('/set-song/' + CURRENT_ROOM_ID + '/' + SINGING_BULLETIN[new_index].song, {}, () => {
+						INDEX = new_index;
+						selectSong(new_index);
+						CURRENTLY_SINGING = true;
+						$('#advance').text('Stop singing');
+					});
+				});
+			} else {
+				INDEX = new_index;
+				selectSong(new_index);
+				CURRENTLY_SINGING = true;
+				$('#advance').text('Stop section');
+			}
+		}
+	}
+});
 
 function populateSinging(callback) {
 	$('#room-id-display').text(CURRENT_ROOM_ID);
@@ -435,6 +477,8 @@ function populateSinging(callback) {
 		if (Number(response.index) == -1) {
 			$('#advance').text('');
 		}
+
+		SINGING_BULLETIN = response.bulletin;
 
 		response.bulletin.forEach((item, i) => {
 			const new_div = document.createElement('div');
@@ -465,10 +509,17 @@ function populateSinging(callback) {
 			new_div.appendChild(jump_button);
 			jump_button.addEventListener('click', () => {
 				get('/stop-song/' + CURRENT_ROOM_ID, {}, () => {
+					get('/set-index/' + CURRENT_ROOM_ID + '/' + i, {}, () => {
+					INDEX = i;
+					selectSong(INDEX);
+
+					CURRENTLY_SINGING = true;
+					$('#advance').text('Stop singing');
+
 					if (item.hasOwnProperty('song')) {
 						get('/set-song/' + CURRENT_ROOM_ID + '/' + item.song, {});
 					}
-					get('/set-index/' + CURRENT_ROOM_ID + '/' + i, {});
+					});
 				});
 			});
 
