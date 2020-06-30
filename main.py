@@ -290,7 +290,7 @@ def submit_audio(user_id, index, tick):
     room_id = r.get('USER-ROOM:%s' % user_id).decode('utf-8')
     room_index = int(r.get('ROOM-INDEX:%s' % room_id))
 
-    room_song = r.get('ROOM-SONG:%s' % room_song)
+    room_song = r.get('ROOM-SONG:%s' % room_id)
 
     if room_index != index or room_song is None:
         return encoding.encode({
