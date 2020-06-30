@@ -172,7 +172,7 @@ def get_mixed(room_id, tick):
 
         return encoding.encode({'success': False,
             'users': user_names,
-            'index': index,
+            'index': index.decode('utf-8'),
             'reason': 'NO_SONG_PLAYING'})
 
     song = int(song)
@@ -211,7 +211,7 @@ def get_mixed(room_id, tick):
 
     return encoding.encode({
         'success': True,
-        'index': index,
+        'index': index.decode('utf-8'),
         'users': user_names,
         'sound': as_mp3(segment)
     })
@@ -249,6 +249,12 @@ def stop_song(room_id):
 @app.route('/set-song/<string:room_id>/<int:song_id>')
 def set_song(room_id, song_id):
     r.set('ROOM-SONG:%s' % room_id, song_id)
+    
+    return encoding.encode({'success': True})
+
+@app.route('/set-index/<string:room_id>/<int:index>')
+def set_index(room_id, index):
+    r.set('ROOM-INDEX:%s' % room_id, index)
     
     return encoding.encode({'success': True})
 

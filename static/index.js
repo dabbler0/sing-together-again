@@ -101,6 +101,8 @@ function scheduleNext(tick, nextTime, room_id_string, user_id) {
 	get('/get-mixed/' + room_id_string + '/' + tick, {}, (response) => {
 		populateUsers(response.users);
 
+		selectSong(Number(response.index));
+
 		if (response.success === false) {
 			setTimeout((() => {
 				scheduleNext(0, context.currentTime, room_id_string, user_id);
@@ -212,7 +214,7 @@ function refetchSongs(callback) {
 
 function rerenderBulletin() {
 	$('#existing-bulletin').html('');
-	CURRENT_BULLETIN.forEach((item) => {
+	CURRENT_BULLETIN.forEach((item, i) => {
 		const new_element = document.createElement('div');
 		new_element.className = 'list-group-item';
 
@@ -262,8 +264,27 @@ function rerenderBulletin() {
 
 		song_selection.value = item.song;
 
-		new_element.appendChild(song_selection);
-		new_element.appendChild(name_input);
+		function createDiv(className, contents) {
+			const div = document.createElement('div');
+			div.className = className;
+			contents.forEach((x) => div.appendChild(x));
+
+			return div;
+		}
+
+		const top_row = createDiv(
+			'form-group row',
+			[
+				createDiv('col-sm-3', [song_selection]),
+				createDiv('col-sm-9', [name_input])
+			]
+		);
+
+		const header_div = document.createElement('div');
+		header_div.innerText = 'Section ' + (i + 1);
+
+		new_element.appendChild(header_div);
+		new_element.appendChild(top_row);
 		new_element.appendChild(description_input);
 
 		$('#existing-bulletin').append(new_element);
@@ -394,11 +415,22 @@ function populateUsers(users) {
 	});
 }
 
+let WRAPPER_DIVS = [];
+
+function selectSong(index) {
+	WRAPPER_DIVS.forEach((x) => $(x).removeClass('bulletin-current'));
+	if (index >= 0)
+		$(WRAPPER_DIVS[index]).addClass('bulletin-current');
+}
+
 function populateSinging(callback) {
 	$('#room-id-display').text(CURRENT_ROOM_ID);
 
 	$('#singing-bulletin').html('');
-	get('/get-bulletin/' + CURRENT_ROOM_ID, {}, (response) => {
+
+	WRAPPER_DIVS = [];
+
+	get('/get-bulletin/' + CURRENT_ROOM_ID, {}, (response, i) => {
 
 		if (Number(response.index) == -1) {
 			$('#advance').text('');
@@ -409,6 +441,8 @@ function populateSinging(callback) {
 			const new_header = document.createElement('div');
 			const new_desc = document.createElement('div');
 			const jump_button = document.createElement('button');
+
+			WRAPPER_DIVS.push(new_div);
 
 			new_div.className = 'bulletin-element';
 
@@ -434,6 +468,7 @@ function populateSinging(callback) {
 					if (item.hasOwnProperty('song')) {
 						get('/set-song/' + CURRENT_ROOM_ID + '/' + item.song, {});
 					}
+					get('/set-index/' + CURRENT_ROOM_ID + '/' + i, {});
 				});
 			});
 

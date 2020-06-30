@@ -149,3 +149,11 @@
 	line-height: 35px;
 	padding: 10px;
 }
+
+#existing-bulletin .list-group-item:nth-child(even) {
+	background-color: #EEF;
+}
+
+.bulletin-current {
+	background-color: #FEB;
+}
