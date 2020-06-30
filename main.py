@@ -184,6 +184,11 @@ def get_mixed(room_id, user_id, tick):
 
     # Dynamically overlay.
     for user in users:
+
+        # Don't give people their own audio
+        if user == user_id:
+            continue
+
         user_audio = r.get('USER-AUDIO-%d:%s' % (tick % 2, user))
 
         if user_audio is not None:
