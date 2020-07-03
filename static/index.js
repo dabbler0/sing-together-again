@@ -208,6 +208,33 @@ let CURRENT_USER_ID = null;
 let CURRENT_ROOM_ID = null;
 
 /*
+ * If we got here by way of a link,
+ * go to joining immediately.
+ */
+
+const split_url = window.location.href.split('?');
+if (split_url.length > 1) {
+	const query_string = split_url[1];
+
+	const query_elements = query_string.split('&');
+
+	query_elements.forEach((element) => {
+		const [key, value] = element.split('=');
+		if (key == 'join_room') {
+			joinRoomImmediately(value);
+		}
+	});
+}
+
+function joinRoomImmediately(room_id) {
+	showView('calibrating');
+	$('#cancel-join').hide();
+	$('#room').val(room_id);
+	$('#room').attr('disabled', true);
+}
+
+
+/*
  * VIEW 1: WELCOME
  *
  * Welcome contains two buttons: #join and #create.
@@ -341,6 +368,10 @@ function rerenderBulletin() {
 			if (value >= 0) {
 				name_input.value = KNOWN_SONGS[value].name;
 				item.name = KNOWN_SONGS[value].name;
+				credits.innerText = 'Song from: ' + KNOWN_SONGS[value].credits;
+				item.credits = KNOWN_SONGS[value].credits;
+			} else {
+				item.credits = '';
 			}
 		});
 
@@ -366,6 +397,10 @@ function rerenderBulletin() {
 			return div;
 		}
 
+		const credits = createDiv('bulletin-credits', []);
+		if (item.song > -1)
+			credits.innerText = 'Song from: ' + KNOWN_SONGS[item.song].credits;
+
 		const top_row = createDiv(
 			'form-group row',
 			[
@@ -380,6 +415,7 @@ function rerenderBulletin() {
 		new_element.appendChild(header_div);
 		new_element.appendChild(top_row);
 		new_element.appendChild(description_input);
+		new_element.appendChild(credits);
 
 		$('#existing-bulletin').append(new_element);
 	});
@@ -463,13 +499,35 @@ $('#file-upload').change(() => {
  * Submitting has a text input for the name of the song (#song-name)
  * and a "submit" button (#submit).
  */
+let SOURCE_NODE;
+
+$('#start-time').bind('mousemove change', () => {
+	$('#start-time-info').text($('#start-time').val());
+});
+
+$('#end-time').bind('mousemove change', () => {
+	$('#end-time-info').text($('#end-time').val());
+});
+
+$('#start-time, #end-time').change(() => {
+	const start_time = $('#start-time').val();
+	const end_time = $('#end-time').val();
+
+	SOURCE_NODE.loopStart = start_time;
+	SOURCE_NODE.loopEnd = end_time;
+})
 
 $('#submit').click(() => {
+	SOURCE_NODE.stop();
+	SOURCE_NODE = null;
 	new Response(MOST_RECENT_RECORDED_DATA[0]).arrayBuffer().then((buffer) => {
 		post('/submit-new-song', {
 			'name': $('#song-name').val(),
 			'format': FILE_FORMAT,
-			'sound': buffer
+			'sound': buffer,
+			'start-time': Math.round(Number($('#start-time').val()) * 1000),
+			'end-time': Math.round($('#end-time').val() * 1000),
+			'credits': $('#song-credits').val()
 		}, () => {
 			refetchSongs(rerenderBulletin);
 			document.getElementById('playback').pause();
@@ -479,16 +537,35 @@ $('#submit').click(() => {
 });
 
 $('#retry').click(() => {
+	SOURCE_NODE.stop();
+	SOURCE_NODE = null;
 	document.getElementById('playback').pause();
 	showView('recording');
 });
 
 function populateSubmittedAudio() {
-	const data = MOST_RECENT_RECORDED_DATA[0];
+	new Response(MOST_RECENT_RECORDED_DATA[0]).arrayBuffer().then((buffer) => {
+		context.decodeAudioData(buffer, (audioBuffer) => {
+			$('#start-time').attr('min', 0);
+			$('#start-time').attr('max', audioBuffer.duration);
+			$('#start-time').val(0);
+			$('#start-time-info').text(0);
 
-	const url = URL.createObjectURL(data);
+			$('#end-time').attr('min', 0);
+			$('#end-time').attr('max', audioBuffer.duration);
+			$('#end-time').val(audioBuffer.duration);
+			$('#end-time-info').text(audioBuffer.duration);
 
-	$('#playback').attr('src', url);
+			SOURCE_NODE = context.createBufferSource();
+			SOURCE_NODE.buffer = audioBuffer;
+			SOURCE_NODE.loop = true;
+			SOURCE_NODE.loopStart = 0;
+			SOURCE_NODE.loopEnd = audioBuffer.duration;
+			SOURCE_NODE.connect(context.destination);
+			SOURCE_NODE.start();
+		});
+
+	});
 }
 
 /*
@@ -574,6 +651,7 @@ function populateSinging(callback) {
 			const new_div = document.createElement('div');
 			const new_header = document.createElement('div');
 			const new_desc = document.createElement('div');
+			const new_credits = document.createElement('div');
 			const jump_button = document.createElement('button');
 
 			WRAPPER_DIVS.push(new_div);
@@ -586,15 +664,17 @@ function populateSinging(callback) {
 
 			new_header.className = 'bulletin-header';
 			new_desc.className = 'bulletin-desc';
+			new_credits.className = 'bulletin-credits';
 
 			const jump_button_wrapper = document.createElement('div');
 			jump_button_wrapper.appendChild(jump_button);
 
-			jump_button.className = 'btn btn-secondary';
+			jump_button.className = 'btn btn-secondary jump-button';
 			jump_button.innerText = 'jump to this song';
 
 			new_div.appendChild(new_header);
 			new_div.appendChild(new_desc);
+			new_div.appendChild(new_credits);
 
 			new_div.appendChild(jump_button);
 			jump_button.addEventListener('click', () => {
@@ -615,6 +695,7 @@ function populateSinging(callback) {
 
 			new_header.innerText = (i + 1) + '. ' + item.name;
 			new_desc.innerText = item.description;
+			new_credits.innerText = item.credits;
 
 			$('#singing-bulletin').append(new_div);
 		});

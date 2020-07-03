@@ -13,11 +13,17 @@
 			</div>
 			<div id="welcome-action">
 				<button id="join" class="btn btn-success">
+					<div><span class="glyphicon glyphicon-music"></span></div>
+					<div>
 					Join
+					</div>
 				</button>
 				or
 				<button id="create" class="btn btn-primary">
+					<div><span class="glyphicon glyphicon-plus"></span></div>
+					<div>
 					Create
+					</div>
 				</button>
 			</div>
 			<div id="welcome-about">
@@ -132,12 +138,21 @@
 			</div>
 
 			<div id="submitting-action">
-				<div>Record or upload a new accompaniment</div>
+				<div>Cut and submit accompaniment</div>
 				<div style="padding:10px">
 				<audio id="playback" controls loop></audio>
 				</div>
 				<div style="padding:10px">
-				<input id="song-name" class="form-control" placeholder="Name of song"/>
+					<div class="row">
+						<div class="col-sm-2" style="text-align: left"> Start time: <span id="start-time-info"></span></div>
+						<div class="col-sm-10"> <input id="start-time" class="form-control" type="range" step="0.01"/></div>
+					</div>
+					<div class="row">
+						<div class="col-sm-2" style="text-align: left"> End time: <span id="end-time-info"></span></div>
+						<div class="col-sm-10"> <input id="end-time" class="form-control" type="range" step="0.01"/></div>
+					</div>
+					<input id="song-name" class="form-control" placeholder="Name of song"/>
+					<textarea id="song-credits" class="form-control" placeholder="Copyright/credits for this song"></textarea>
 				</div>
 				<div style="padding:10px">
 					<button id="submit" class="btn btn-success">Submit</button> or <button id="retry">Try again</button>

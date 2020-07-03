@@ -103,6 +103,18 @@
 	font-size: 20px;
 }
 
+#join, #create {
+	width: 150px;
+	height: 150px;
+}
+
+.bulletin-credits {
+	font-size: 15px;
+	font-style: italic;
+	padding: 5px;
+	text-align: left;
+}
+
 #joining-action .btn, #joining-action .form-control, #recording-action .btn,
 #submitting-action .btn, #submitting-action .form-control {
 	font-size: inherit;

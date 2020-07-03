@@ -45,12 +45,13 @@ static_files = {
     'bootstrap.css': 'static/bootstrap/css/bootstrap.min.css',
     'bootstrap.min.css.map': 'static/bootstrap/css/bootstrap.min.css.map',
     'encoding.js': 'static/encoding.js',
-    'index.js': 'static/index.js'
+    'index.js': 'static/index.js',
+    'glyphicons.woff': 'static/bootstrap/fonts/glyphicons-halflings-regular.woff'
 }
 
 @app.route('/static-x/<path:path>')
 def test1(path):
-    with open(static_files[path]) as f:
+    with open(static_files[path], 'rb') as f:
         return f.read()
 
 @app.route('/song-list')
@@ -64,7 +65,8 @@ def list_songs():
     return encoding.encode([
         {
             'id': i,
-            'name': r.get('SONG-NAME:%d' % i).decode('utf-8')
+            'name': r.get('SONG-NAME:%d' % i).decode('utf-8'),
+            'credits': r.get('SONG-CREDITS:%d' % i).decode('utf-8')
         } for i in range(last_song_id)
     ])
 
@@ -81,10 +83,12 @@ def submit_new_song():
 
     payload['id'] = last_id
     
+    # Clip as requested
     segment = read_arbitrary(payload['sound'], format=payload['format'])
-    sound = as_mp3(segment)
+    segment = segment[payload['start-time']:payload['end-time']]
 
     r.set('SONG-NAME:%d' % last_id, payload['name'])
+    r.set('SONG-CREDITS:%d' % last_id, payload['credits'])
     r.set('SONG-DATA-0:%d' % last_id, as_mp3(segment[:len(segment) // 2]))
     r.set('SONG-DATA-1:%d' % last_id, as_mp3(segment[len(segment) // 2:]))
 
@@ -225,7 +229,7 @@ def get_mixed(room_id, user_id, tick):
 @app.route('/get-bulletin/<string:room_id>')
 def get_bulletin(room_id):
     bulletin = encoding.decode(r.get('ROOM-BULLETIN:%s' % room_id))
-    index = r.get('ROOM-INDEX:%s' % room_id)
+    index = int(r.get('ROOM-INDEX:%s' % room_id))
 
     if bulletin is None:
         return encoding.encode({'success': False})
