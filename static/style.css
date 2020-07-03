@@ -3,7 +3,7 @@
 	height: 100%;
 }
 
-#joining, #creating, #recording, #submitting, #singing {
+#joining, #creating, #recording, #submitting, #singing, #calibrating {
 	display: none;
 }
 
@@ -16,13 +16,17 @@
 	font-size: 15px;
 }
 
-#joining-action, #recording-action, #submitting-action {
+#joining-action, #recording-action, #submitting-action, #calibrating-action {
 	background: #DDD;
 	margin: 30px;
 	border-radius: 5px;
 	padding: 30px;
 	text-align: center;
 	font-size: 25px;
+}
+
+#calibrating-action p {
+	font-size: 18px;
 }
 
 #creating-action, #singing-action {

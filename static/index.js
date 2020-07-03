@@ -61,8 +61,21 @@ function playAudioBuffer(buffer, time) {
 	}
 }
 
-function recordAtTime(start_time, end_time, assumed_index, user_id, tick) {
-	console.log('I got a request to record at time', start_time);
+function createOscillatorBuffer(duration) {
+	const buffer = context.createBuffer(2, context.sampleRate * duration, context.sampleRate);
+
+	// Frequency of A 440 (TODO someting else?)
+	for (var channel = 0; channel < buffer.numberOfChannels; channel++) {
+		var currentChannel = buffer.getChannelData(channel);
+		for (var i = 0; i < buffer.length; i++) {
+			currentChannel[i] = Math.sin(2 * Math.PI * i * 440 / context.sampleRate);
+		}
+	}
+
+	return buffer;
+}
+
+function recordAtTime(start_time, end_time, callback)  {
 	function kickoffTimeCheck() {
 		if (start_time - context.currentTime < 0.5) {
 			beginActualRecording(start_time - context.currentTime);
@@ -72,18 +85,9 @@ function recordAtTime(start_time, end_time, assumed_index, user_id, tick) {
 	}
 
 	function beginActualRecording(offset) {
-		console.log('beginning actual recording at time', context.currentTime, 'for time', start_time, 'with offset', offset);
 		const stop = recordMedia((data) => {
 			new Response(data[0]).arrayBuffer().then((buffer) => {
-				post(
-					'/submit-audio/' + user_id + '/' + assumed_index + '/' + tick,
-					{'sound': buffer, 'offset':
-						Math.abs(Math.round(
-						offset * 1000)
-						),
-					'offset-sign': (offset < 0)}
-					// no callback I guess
-				);
+				callback(buffer, offset);
 			});
 		}).stop;
 
@@ -94,6 +98,35 @@ function recordAtTime(start_time, end_time, assumed_index, user_id, tick) {
 	}
 
 	kickoffTimeCheck();
+}
+
+function measureLatency(callback) {
+	const supposedTime = context.currentTime + 1;
+	const buffer = createOscillatorBuffer(0.5);
+
+	playAudioBuffer(buffer, supposedTime);
+
+	recordAtTime(supposedTime, supposedTime + 1, (data, offset) => {
+		context.decodeAudioData(data, (audioBuffer) => {
+			const channelData = audioBuffer.getChannelData(0);
+
+			const maximum = Math.max.apply(window, channelData);
+			const minimum = Math.min.apply(window, channelData);
+
+			const thresh = Math.min(Math.abs(maximum) / 2,
+				Math.abs(minimum) / 2);
+
+			const startIndex = Math.round(audioBuffer.sampleRate * offset);
+			const endIndex = startIndex + audioBuffer.sampleRate * 1;
+
+			for (let i = startIndex; i < endIndex; i++) {
+				if (Math.abs(channelData[i]) > thresh) {
+					callback((i - startIndex) / audioBuffer.sampleRate);
+					return;
+				}
+			}
+		});
+	});
 }
 
 function scheduleNext(tick, nextTime, room_id_string, user_id) {
@@ -116,7 +149,22 @@ function scheduleNext(tick, nextTime, room_id_string, user_id) {
 
 		makeAudioBuffer(response.sound.buffer, (buffer) => {
 			playAudioBuffer(buffer, nextTime);
-			recordAtTime(nextTime, nextTime + buffer.duration, assumed_index, user_id, tick)
+			recordAtTime(nextTime, nextTime + buffer.duration, (buffer, offset) => {
+
+				// Adjust the offset by the latency calibration amount.
+				// Remember: positive offset means
+				offset += CALIBRATION;
+
+				post(
+					'/submit-audio/' + user_id + '/' + assumed_index + '/' + tick,
+					{'sound': buffer, 'offset':
+						Math.abs(Math.round(
+						offset * 1000)
+						),
+					'offset-sign': (offset < 0)}
+					// no callback I guess
+				);
+			});
 
 			setTimeout((() => {
 				scheduleNext(
@@ -141,6 +189,7 @@ function beginPlaying(user_id, room_id_string) {
 
 const views = {
 	'welcome': $('#welcome'),
+	'calibrating': $('#calibrating'),
 	'joining': $('#joining'),
 	'creating': $('#creating'),
 	'singing': $('#singing'),
@@ -164,13 +213,54 @@ let CURRENT_ROOM_ID = null;
  * Welcome contains two buttons: #join and #create.
  */
 $('#join').click(() => {
-	showView('joining');
+	showView('calibrating');
 });
 
 $('#create').click(() => {
 	refetchSongs(rerenderBulletin);
 	showView('creating');
 });
+
+let CALIBRATION = null;
+
+/*
+ * VIEW 1.5: CALIBRATING
+ *
+ * Calibrating has two buttons, one for running the calibration again,
+ * one for accepting the current calibration and moving forward.
+ */
+
+$('#calibrate').click(() => {
+	const samples = [];
+
+	function repeatCalibration(repetitions, callback) {
+		$('#calibrate-info').text(repetitions + ' measurements remaining.');
+		measureLatency((latency) => {
+			samples.push(latency);
+			if (repetitions > 1)
+				repeatCalibration(repetitions - 1, callback);
+			else
+				callback();
+		});
+	}
+
+	repeatCalibration(9, () => {
+		// Median latency
+		const average = samples.sort()[4];
+
+		// TODO outliers
+
+		CALIBRATION = average;
+
+		$('#proceed').attr('disabled', false);
+		$('#calibrate-info').text('Estimated latency: ' + average);
+	});
+});
+
+$('#proceed').click(() => {
+	showView('joining');
+});
+
 
 /*
  * VIEW 2: JOINING
@@ -308,7 +398,7 @@ $('#create-service').click(() => {
 	post('/create-room', CURRENT_BULLETIN.map((x) => (x.song == -1 ? {name: x.name, description: x.description} : x)), (response) => {
 		$('#room').val(response.room_id);
 
-		showView('joining');
+		showView('calibrating');
 	});
 });
 
