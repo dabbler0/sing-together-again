@@ -1,10 +1,10 @@
-#Sing together again
+# Sing together again
 
 A webapp for singing repeated songs together over the internet. People can sing in harmony by listening to the synchronized audio of everyone else's previous repetition.
 
 Originally made to help Taize at MIT sing together again during the COVID-19 lockdown in the summer and fall of 2020.
 
-#TODO
+# TODO
 
  - Support for sung responses to prayers (idea: leader reads, then clicks a button; then everyone's previous audio is played while they sing for the next response).
  - Garbage-collect empty rooms.
@@ -14,7 +14,7 @@ Originally made to help Taize at MIT sing together again during the COVID-19 loc
  - Compatibility with older browsers.
  - Stretch ambition: can we do some kind of clever signal processing or machine learning to allow people not to need to use headphones?
 
-#License
+# License
 
 I'd hate for anyone to be unable to use this because of licensing issues! So it's licensed under the MIT License. But if you are using it, I would appreciate it if you would let me know (dab1998@gmail.com).
 
