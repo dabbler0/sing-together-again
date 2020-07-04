@@ -119,11 +119,14 @@ function measureLatency(callback) {
 			const startIndex = Math.round(audioBuffer.sampleRate * offset);
 			const endIndex = startIndex + audioBuffer.sampleRate * 1;
 
-			for (let i = startIndex; i < endIndex; i++) {
-				if (Math.abs(channelData[i]) > thresh) {
-					callback((i - startIndex) / audioBuffer.sampleRate);
-					return;
+			while (true) {
+				for (let i = startIndex; i < endIndex; i++) {
+					if (Math.abs(channelData[i]) > thresh) {
+						callback((i - startIndex) / audioBuffer.sampleRate);
+						return;
+					}
 				}
+				thresh /= 2;
 			}
 		});
 	});
@@ -371,6 +374,7 @@ function rerenderBulletin() {
 				credits.innerText = 'Song from: ' + KNOWN_SONGS[value].credits;
 				item.credits = KNOWN_SONGS[value].credits;
 			} else {
+				credits.innerText = '';
 				item.credits = '';
 			}
 		});
